@@ -8,8 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /* ------- CAPTCHA ------- */
 
-let selectedCount = 0;
 const TOTAL_IMAGES = 9;
+const CORRECT_IMAGES = [1, 2, 3, 5, 7, 8, 9]; // Foto's van mij (niet 4 en 6)
 
 function initCaptcha() {
     const grid = document.getElementById('captcha-grid');
@@ -17,9 +17,10 @@ function initCaptcha() {
     for (let i = 1; i <= TOTAL_IMAGES; i++) {
         const cell = document.createElement('div');
         cell.className = 'captcha-cell';
+        cell.dataset.index = i;
 
         const img = document.createElement('img');
-        img.src = `images/${i}.jpg`;
+        img.src = `images/${i}.jpeg`;
         img.alt = `Foto ${i}`;
         img.draggable = false;
         img.onerror = () => cell.classList.add('no-image');
@@ -41,13 +42,23 @@ function initCaptcha() {
 
 function toggleCell(cell) {
     cell.classList.toggle('selected');
-    selectedCount = document.querySelectorAll('.captcha-cell.selected').length;
+}
+
+function checkAnswer() {
+    const cells = document.querySelectorAll('.captcha-cell');
+    for (const cell of cells) {
+        const index = parseInt(cell.dataset.index);
+        const isSelected = cell.classList.contains('selected');
+        const shouldBeSelected = CORRECT_IMAGES.includes(index);
+        if (isSelected !== shouldBeSelected) return false;
+    }
+    return true;
 }
 
 function handleVerify() {
     const errorEl = document.getElementById('captcha-error');
 
-    if (selectedCount < TOTAL_IMAGES) {
+    if (!checkAnswer()) {
         // Show error
         errorEl.classList.add('show');
         // Shake animation
@@ -147,7 +158,7 @@ function startValentineAnimations() {
 
 function startFloatingHearts() {
     const container = document.getElementById('hearts-container');
-    const heartEmojis = ['❤️', '💕', '💖', '💗', '💓', '🩷', '♥️'];
+    const heartEmojis = ['❤️', '🧡', '💙', '❤️', '🧡', '💙', '♥️', '💛'];
 
     function createHeart() {
         const heart = document.createElement('div');
@@ -193,11 +204,11 @@ const originalMainText = 'He Nina Lekkerding';
 const originalSubtitle = 'Wil je mijn valentijn zijn?';
 
 const noTexts = [
-    'Ik proef sfeer... 🤔',
-    'Heb je de lenzen niet in? 🤓',
-    'Dit is nog gemener dan ribben prikken 😤',
+    'Normaaal doen !',
+    'Ik proef sfeer...! ',
+    'Dit is nog Kutter dan ribben prikken 😤',
     'Hou je nog wel van me? 🥺',
-    'Het is duidelijk.... 😢',
+    'Het is duidelijk.... tot nooit 😢',
 ];
 
 function setupButtons() {
@@ -320,7 +331,7 @@ function handleYes() {
         // Start kiss animation
         kissOverlay.classList.add('active');
 
-        // After photos meet (2.5s) + kiss emoji (0.6s) + pause (1s) = ~4s -> show success
+        // Kiss emoji (0.6s) + pause (1.5s) -> show success
         setTimeout(() => {
             kissOverlay.style.transition = 'opacity 0.8s ease';
             kissOverlay.style.opacity = '0';
@@ -330,7 +341,7 @@ function handleYes() {
                 document.getElementById('success-screen').classList.add('show');
                 createConfetti();
             }, 800);
-        }, 3800);
+        }, 2000);
     }, 600);
 }
 
