@@ -207,6 +207,17 @@ function setupButtons() {
 function moveNoButton(btn) {
     noEscapeCount++;
 
+    // On first escape: pin the button at its current visual position as fixed,
+    // so the next position change can be animated smoothly.
+    if (!btn.classList.contains('escaped')) {
+        const rect = btn.getBoundingClientRect();
+        btn.style.left = rect.left + 'px';
+        btn.style.top = rect.top + 'px';
+        btn.classList.add('escaped');
+        // Force a reflow so the browser registers the current position
+        btn.offsetTop;
+    }
+
     if (noEscapeCount <= NEAR_JUMPS) {
         // Jump near the text/buttons area (center of screen)
         moveNearText(btn);
@@ -237,7 +248,6 @@ function moveNearText(btn) {
     newX = Math.max(10, Math.min(newX, window.innerWidth - btn.offsetWidth - 10));
     newY = Math.max(10, Math.min(newY, window.innerHeight - btn.offsetHeight - 10));
 
-    btn.classList.add('escaped');
     btn.style.left = newX + 'px';
     btn.style.top = newY + 'px';
 }
@@ -250,7 +260,6 @@ function moveRandom(btn) {
     const newX = Math.random() * maxX;
     const newY = Math.random() * maxY;
 
-    btn.classList.add('escaped');
     btn.style.left = newX + 'px';
     btn.style.top = newY + 'px';
 }

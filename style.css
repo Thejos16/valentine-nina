@@ -515,7 +515,7 @@ body {
     background: #e0e0e0;
     color: #666;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: all 0.1s ease;
+    transition: left 0.25s ease, top 0.25s ease, transform 0.2s, box-shadow 0.2s;
     position: relative;
     z-index: 5;
 }
