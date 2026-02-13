@@ -324,7 +324,7 @@ body {
    ============================================ */
 
 #valentine-screen {
-    background: linear-gradient(135deg, #c62828 0%, #e53935 50%, #ef5350 100%);
+    background: linear-gradient(135deg, #b71c1c 0%, #e53935 40%, #ff8a80 70%, #ffcdd2 100%);
     flex-direction: column;
     overflow: hidden;
 }
