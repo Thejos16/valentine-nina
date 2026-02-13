@@ -187,8 +187,18 @@ function startFloatingHearts() {
 
 /* ------- BUTTONS ------- */
 
-let noEscapeCount = 0;
-const NEAR_JUMPS = 4; // How many times it stays near the text before flying away
+let noClickCount = 0;
+let noTextTimeout = null;
+const originalMainText = 'He Nina Lekkerding';
+const originalSubtitle = 'Wil je mijn valentijn zijn?';
+
+const noTexts = [
+    'Ik proef sfeer... 🤔',
+    'Heb je de lenzen niet in? 🤓',
+    'Dit is nog gemener dan ribben prikken 😤',
+    'Hou je nog wel van me? 🥺',
+    'Het is duidelijk.... 😢',
+];
 
 function setupButtons() {
     const yesBtn = document.getElementById('yes-btn');
@@ -197,54 +207,77 @@ function setupButtons() {
     yesBtn.addEventListener('click', handleYes);
 
     // Nee button escapes!
-    noBtn.addEventListener('mouseover', () => moveNoButton(noBtn));
+    noBtn.addEventListener('mouseover', () => handleNo(noBtn));
     noBtn.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        moveNoButton(noBtn);
+        handleNo(noBtn);
     }, { passive: false });
 }
 
-function moveNoButton(btn) {
-    noEscapeCount++;
+function handleNo(btn) {
+    noClickCount++;
 
-    // On first escape: pin the button at its current visual position as fixed,
-    // so the next position change can be animated smoothly.
+    const yesBtn = document.getElementById('yes-btn');
+    const yesRect = yesBtn.getBoundingClientRect();
+    const textEl = document.getElementById('valentine-text');
+    const textRect = textEl.getBoundingClientRect();
+    const mainTextEl = textEl.querySelector('.main-text');
+    const subtitleEl = textEl.querySelector('.subtitle');
+
+    // Change the text for 3 seconds
+    if (noClickCount <= noTexts.length) {
+        clearTimeout(noTextTimeout);
+        mainTextEl.textContent = noTexts[noClickCount - 1];
+        subtitleEl.textContent = '';
+
+        noTextTimeout = setTimeout(() => {
+            mainTextEl.textContent = originalMainText;
+            subtitleEl.textContent = originalSubtitle;
+        }, 3000);
+    }
+
+    // Pin at current position on first escape
     if (!btn.classList.contains('escaped')) {
         const rect = btn.getBoundingClientRect();
         btn.style.left = rect.left + 'px';
         btn.style.top = rect.top + 'px';
         btn.classList.add('escaped');
-        // Force a reflow so the browser registers the current position
-        btn.offsetTop;
+        btn.offsetTop; // force reflow
     }
 
-    if (noEscapeCount <= NEAR_JUMPS) {
-        // Jump near the text/buttons area (center of screen)
-        moveNearText(btn);
-    } else {
-        // Fly to random spots across the whole screen
-        moveRandom(btn);
+    const gap = 15;
+    let newX, newY;
+
+    switch (noClickCount) {
+        case 1:
+            // Links van de Ja knop
+            newX = yesRect.left - btn.offsetWidth - gap;
+            newY = yesRect.top + (yesRect.height - btn.offsetHeight) / 2;
+            break;
+        case 2:
+            // Boven de Ja knop
+            newX = yesRect.left + (yesRect.width - btn.offsetWidth) / 2;
+            newY = yesRect.top - btn.offsetHeight - gap;
+            break;
+        case 3:
+            // Onder de Ja knop
+            newX = yesRect.left + (yesRect.width - btn.offsetWidth) / 2;
+            newY = yesRect.bottom + gap;
+            break;
+        case 4:
+            // Boven de tekst
+            newX = textRect.left + (textRect.width - btn.offsetWidth) / 2;
+            newY = textRect.top - btn.offsetHeight - gap;
+            break;
+        default:
+            // Klik 5: verdwijnen
+            btn.style.transition = 'opacity 0.4s ease';
+            btn.style.opacity = '0';
+            setTimeout(() => btn.style.display = 'none', 400);
+            return;
     }
-}
 
-function moveNearText(btn) {
-    const textEl = document.getElementById('valentine-text');
-    const textRect = textEl.getBoundingClientRect();
-
-    // Define a zone around the text area
-    const centerX = textRect.left + textRect.width / 2;
-    const centerY = textRect.top + textRect.height / 2;
-    const spreadX = 140;
-    const spreadY = 100;
-
-    // Random position within that zone, but avoid landing exactly where it was
-    const offsetX = (Math.random() - 0.5) * 2 * spreadX;
-    const offsetY = (Math.random() - 0.5) * 2 * spreadY;
-
-    let newX = centerX + offsetX - btn.offsetWidth / 2;
-    let newY = centerY + offsetY - btn.offsetHeight / 2;
-
-    // Keep within screen bounds
+    // Houd binnen scherm
     newX = Math.max(10, Math.min(newX, window.innerWidth - btn.offsetWidth - 10));
     newY = Math.max(10, Math.min(newY, window.innerHeight - btn.offsetHeight - 10));
 
@@ -252,30 +285,32 @@ function moveNearText(btn) {
     btn.style.top = newY + 'px';
 }
 
-function moveRandom(btn) {
-    const padding = 20;
-    const maxX = window.innerWidth - btn.offsetWidth - padding;
-    const maxY = window.innerHeight - btn.offsetHeight - padding;
-
-    const newX = Math.random() * maxX;
-    const newY = Math.random() * maxY;
-
-    btn.style.left = newX + 'px';
-    btn.style.top = newY + 'px';
-}
-
 function handleYes() {
-    const successScreen = document.getElementById('success-screen');
     const valentineContent = document.getElementById('valentine-content');
+    const kissOverlay = document.getElementById('kiss-overlay');
 
-    // Hide valentine content
+    // Fade out valentine content
+    valentineContent.style.transition = 'opacity 0.6s ease';
     valentineContent.style.opacity = '0';
 
     setTimeout(() => {
         valentineContent.style.display = 'none';
-        successScreen.classList.add('show');
-        createConfetti();
-    }, 400);
+
+        // Start kiss animation
+        kissOverlay.classList.add('active');
+
+        // After photos meet (2.5s) + kiss emoji (0.6s) + pause (1s) = ~4s -> show success
+        setTimeout(() => {
+            kissOverlay.style.transition = 'opacity 0.8s ease';
+            kissOverlay.style.opacity = '0';
+
+            setTimeout(() => {
+                kissOverlay.style.display = 'none';
+                document.getElementById('success-screen').classList.add('show');
+                createConfetti();
+            }, 800);
+        }, 3800);
+    }, 600);
 }
 
 /* ------- CONFETTI ------- */
