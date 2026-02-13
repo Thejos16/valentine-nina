@@ -224,25 +224,42 @@ function handleNo(btn) {
     const mainTextEl = textEl.querySelector('.main-text');
     const subtitleEl = textEl.querySelector('.subtitle');
 
-    // Change the text for 3 seconds
+    // Fade text: out -> change -> in
     if (noClickCount <= noTexts.length) {
         clearTimeout(noTextTimeout);
-        mainTextEl.textContent = noTexts[noClickCount - 1];
-        subtitleEl.textContent = '';
+        textEl.style.transition = 'opacity 0.3s ease';
+        textEl.style.opacity = '0';
+
+        setTimeout(() => {
+            mainTextEl.textContent = noTexts[noClickCount - 1];
+            subtitleEl.textContent = '';
+            textEl.style.opacity = '1';
+        }, 300);
 
         noTextTimeout = setTimeout(() => {
-            mainTextEl.textContent = originalMainText;
-            subtitleEl.textContent = originalSubtitle;
-        }, 3000);
+            textEl.style.opacity = '0';
+            setTimeout(() => {
+                mainTextEl.textContent = originalMainText;
+                subtitleEl.textContent = originalSubtitle;
+                textEl.style.opacity = '1';
+            }, 300);
+        }, 3300);
     }
 
-    // Pin at current position on first escape
+    // On first escape: move button to body so position:fixed works correctly
+    // (the .buttons parent has a transform which breaks fixed positioning on iOS)
     if (!btn.classList.contains('escaped')) {
         const rect = btn.getBoundingClientRect();
+        btn.style.transition = 'none';
+        btn.style.position = 'fixed';
         btn.style.left = rect.left + 'px';
         btn.style.top = rect.top + 'px';
+        btn.style.width = rect.width + 'px';
+        btn.style.margin = '0';
         btn.classList.add('escaped');
-        btn.offsetTop; // force reflow
+        document.body.appendChild(btn);
+        void btn.offsetHeight; // force reflow
+        btn.style.transition = '';
     }
 
     const gap = 15;
@@ -288,6 +305,10 @@ function handleNo(btn) {
 function handleYes() {
     const valentineContent = document.getElementById('valentine-content');
     const kissOverlay = document.getElementById('kiss-overlay');
+    const noBtn = document.getElementById('no-btn');
+
+    // Hide escaped no button if it's still visible
+    if (noBtn) noBtn.style.display = 'none';
 
     // Fade out valentine content
     valentineContent.style.transition = 'opacity 0.6s ease';
