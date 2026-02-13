@@ -187,6 +187,9 @@ function startFloatingHearts() {
 
 /* ------- BUTTONS ------- */
 
+let noEscapeCount = 0;
+const NEAR_JUMPS = 4; // How many times it stays near the text before flying away
+
 function setupButtons() {
     const yesBtn = document.getElementById('yes-btn');
     const noBtn = document.getElementById('no-btn');
@@ -202,6 +205,44 @@ function setupButtons() {
 }
 
 function moveNoButton(btn) {
+    noEscapeCount++;
+
+    if (noEscapeCount <= NEAR_JUMPS) {
+        // Jump near the text/buttons area (center of screen)
+        moveNearText(btn);
+    } else {
+        // Fly to random spots across the whole screen
+        moveRandom(btn);
+    }
+}
+
+function moveNearText(btn) {
+    const textEl = document.getElementById('valentine-text');
+    const textRect = textEl.getBoundingClientRect();
+
+    // Define a zone around the text area
+    const centerX = textRect.left + textRect.width / 2;
+    const centerY = textRect.top + textRect.height / 2;
+    const spreadX = 140;
+    const spreadY = 100;
+
+    // Random position within that zone, but avoid landing exactly where it was
+    const offsetX = (Math.random() - 0.5) * 2 * spreadX;
+    const offsetY = (Math.random() - 0.5) * 2 * spreadY;
+
+    let newX = centerX + offsetX - btn.offsetWidth / 2;
+    let newY = centerY + offsetY - btn.offsetHeight / 2;
+
+    // Keep within screen bounds
+    newX = Math.max(10, Math.min(newX, window.innerWidth - btn.offsetWidth - 10));
+    newY = Math.max(10, Math.min(newY, window.innerHeight - btn.offsetHeight - 10));
+
+    btn.classList.add('escaped');
+    btn.style.left = newX + 'px';
+    btn.style.top = newY + 'px';
+}
+
+function moveRandom(btn) {
     const padding = 20;
     const maxX = window.innerWidth - btn.offsetWidth - padding;
     const maxY = window.innerHeight - btn.offsetHeight - padding;
